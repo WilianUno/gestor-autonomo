@@ -46,6 +46,7 @@ export const agendamentosApi = {
     api.get(`/agendamentos/periodo?inicio=${inicio}&fim=${fim}`),
   criar: (data: any) => api.post('/agendamentos', data),
   atualizar: (id: number, data: any) => api.put(`/agendamentos/${id}`, data),
+  atualizarStatus: (id: number, status: string) => api.patch(`/agendamentos/${id}`, { status }),
   cancelar: (id: number) => api.patch(`/agendamentos/${id}/cancelar`),
   deletar: (id: number) => api.delete(`/agendamentos/${id}`),
   estatisticas: () => api.get('/agendamentos/estatisticas'),
