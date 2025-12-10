@@ -1,35 +1,4 @@
-# gestor-autonomo
-Ferramenta para os autonomos onde vai poder gerenciar sua agenda, clientes, orçamentos, serviços, pagamentos recebidos pendentes e lembretes
-
-
-🏗️ Arquitetura Sugerida
-
-projeto-autonomos/
-├── backend/
-│   ├── src/
-│   │   ├── controllers/    # Recebe requisições HTTP
-│   │   ├── services/       # Lógica de negócio
-│   │   ├── repositories/   # Acesso ao banco SQLite
-│   │   ├── middlewares/    # Log, erros, validação
-│   │   ├── routes/         # Definição das rotas
-│   │   └── database/       # Conexão SQLite
-│   ├── database.sqlite     # Seu banco
-│   └── package.json
-│
-└── frontend/
-    ├── src/
-    │   ├── app/            # Pages do Next.js
-    │   ├── components/     # Componentes React
-    │   ├── services/       # Chamadas à API (fetch/axios)
-    │   └── types/          # Types TypeScript
-    └── package.json
-
-    # 📅 Agenda Pro - Sistema de Agendamentos para Autônomos
-
-![Status](https://img.shields.io/badge/Status-Completo-success)
-![Version](https://img.shields.io/badge/Version-1.0.0-blue)
-![License](https://img.shields.io/badge/License-MIT-green)
-
+# 📅 Agenda Pro - Sistema de Agendamentos para Autônomos
 ---
 
 ## 📖 Sobre o Sistema
@@ -42,7 +11,7 @@ O sistema permite que o profissional autônomo:
 - 📋 **Organize seus clientes** - cadastre e mantenha informações de contato
 - 💼 **Gerencie seus serviços** - cadastre serviços com preços e duração
 - 📅 **Controle sua agenda** - marque, confirme e acompanhe horários
-- 💰 **Visualize receitas** - veja preços e totalize ganhos
+- 💰 **Visualize receitas** - veja preços e totalize ganhos *(em desenvolvimento)*
 - 📊 **Acompanhe status** - pendentes, confirmados, concluídos, cancelados
 
 ---
@@ -90,8 +59,9 @@ O sistema permite que o profissional autônomo:
 - **Node.js** - Runtime JavaScript
 - **Express** - Framework web
 - **TypeScript** - Tipagem estática
-- **Prisma ORM** - Gerenciamento de banco de dados
-- **PostgreSQL** - Banco de dados relacional
+- **Drizzle ORM** - ORM moderno e type-safe
+- **SQLite** - Banco de dados leve e portátil
+- **Better-SQLite3** - Driver nativo para SQLite
 - **CORS** - Middleware para requisições cross-origin
 
 ### Frontend
@@ -101,6 +71,7 @@ O sistema permite que o profissional autônomo:
 - **Tailwind CSS** - Framework CSS utilitário
 - **Lucide React** - Ícones
 - **Axios** - Cliente HTTP
+- **date-fns** - Manipulação de datas
 
 ---
 
@@ -110,24 +81,19 @@ Antes de começar, você precisa ter instalado:
 
 - **Node.js** 18+ ([Download](https://nodejs.org/))
 - **npm** ou **yarn** (vem com o Node.js)
-- **PostgreSQL** 14+ ([Download](https://www.postgresql.org/download/))
 - **Git** (opcional, para clonar o repositório)
+
+⚠️ **Não precisa instalar banco de dados!** O SQLite cria o arquivo automaticamente.
 
 ---
 
 ## 🚀 Instalação e Execução
 
-### 1️⃣ Preparar o Banco de Dados
+### 1️⃣ Clonar o Repositório (opcional)
 
 ```bash
-# Entre no PostgreSQL
-psql -U postgres
-
-# Crie o banco de dados
-CREATE DATABASE agenda_pro;
-
-# Saia do psql
-\q
+git clone https://github.com/seu-usuario/gestor-autonomo.git
+cd gestor-autonomo
 ```
 
 ---
@@ -143,26 +109,26 @@ npm install
 
 # Configure as variáveis de ambiente
 # Crie o arquivo .env na raiz do backend:
-cp .env.example .env
+# No Windows:
+copy .env.example .env
 
-# Edite o arquivo .env e configure:
-# DATABASE_URL="postgresql://usuario:senha@localhost:5432/agenda_pro"
-# PORT=3001
+# No Linux/Mac:
+cp .env.example .env
 ```
 
 **Exemplo de `.env`:**
 ```env
-DATABASE_URL="postgresql://postgres:sua_senha@localhost:5432/agenda_pro"
 PORT=3001
 NODE_ENV=development
+DATABASE_URL=./data/database.db
 ```
 
 ```bash
-# Execute as migrações do Prisma
-npx prisma migrate dev
+# Gere o schema do banco de dados
+npm run db:push
 
 # (Opcional) Visualize o banco de dados
-npx prisma studio
+npm run db:studio
 
 # Inicie o servidor backend
 npm run dev
@@ -171,6 +137,8 @@ npm run dev
 O backend estará rodando em: **http://localhost:3001**
 
 ✅ Se aparecer `🚀 Servidor rodando na porta 3001`, está tudo certo!
+
+⚡ **Vantagem do SQLite:** O arquivo `database.db` é criado automaticamente na pasta `data/` - não precisa configurar servidor de banco!
 
 ---
 
@@ -186,10 +154,11 @@ npm install
 
 # Configure as variáveis de ambiente
 # Crie o arquivo .env.local na raiz do frontend:
-cp .env.local.example .env.local
+# No Windows:
+copy .env.local.example .env.local
 
-# Edite o arquivo .env.local:
-# NEXT_PUBLIC_API_URL=http://localhost:3001/api
+# No Linux/Mac:
+cp .env.local.example .env.local
 ```
 
 **Exemplo de `.env.local`:**
@@ -204,17 +173,32 @@ npm run dev
 
 O frontend estará rodando em: **http://localhost:3000**
 
+✅ Abra o navegador e acesse: **http://localhost:3000**
+
 ---
 
-### Gerenciar Status - (EM DESENVOLVIMENTO)
+## 🎨 Design e Usabilidade
 
-Na página `/agenda`, você pode:
+O sistema foi desenvolvido seguindo as **10 Heurísticas de Nielsen**:
 
-- **Confirmar** um agendamento pendente (botão verde)
-- **Concluir** um agendamento confirmado (botão azul)
-- **Cancelar** um agendamento (botão vermelho)
-- **Editar** qualquer agendamento (botão azul "Editar")
-- **Excluir** permanentemente (botão cinza "Excluir")
+1. ✅ **Visibilidade do Status** - Loading, toasts coloridos, status visuais
+2. ✅ **Linguagem Simples** - Termos do dia-a-dia, sem jargões técnicos
+3. ✅ **Controle do Usuário** - Botões de voltar e cancelar sempre visíveis
+4. ✅ **Consistência** - Mesmos padrões de botões, cores e layouts
+5. ✅ **Prevenção de Erros** - Validação em tempo real, modais de confirmação
+6. ✅ **Reconhecimento** - Ícones + texto (nunca só ícone)
+7. ✅ **Flexibilidade** - Funciona em mobile, tablet e desktop
+8. ✅ **Design Minimalista** - Foco no essencial, sem poluição visual
+9. ✅ **Mensagens Claras** - Feedback sempre em linguagem natural
+10. ✅ **Ajuda e Documentação** - Dicas e exemplos nos formulários
+
+### 🎨 Paleta de Cores
+
+- 🔵 **Azul (Primary)** - Ações principais, navegação
+- 🟢 **Verde (Success)** - Confirmações, valores monetários
+- 🔴 **Vermelho (Danger)** - Exclusões, cancelamentos
+- 🟡 **Amarelo (Warning)** - Avisos, pendências
+- ⚪ **Cinza (Secondary)** - Ações secundárias
 
 ### 📱 Responsividade
 
@@ -251,46 +235,6 @@ O sistema se adapta automaticamente:
 
 ---
 
-## 🐛 Solução de Problemas
-
-### Backend não inicia
-
-**Erro:** `Error: connect ECONNREFUSED 127.0.0.1:5432`
-- ✅ Verifique se o PostgreSQL está rodando
-- ✅ Confirme usuário e senha no `.env`
-- ✅ Verifique se o banco de dados foi criado
-
-**Erro:** `Prisma Client is not able to connect`
-- ✅ Execute `npx prisma generate`
-- ✅ Execute `npx prisma migrate dev`
-
-### Frontend não conecta ao backend
-
-**Erro:** `Network Error` ou `CORS Error`
-- ✅ Verifique se o backend está rodando (`localhost:3001`)
-- ✅ Confirme o `.env.local` no frontend
-- ✅ Verifique o CORS no backend
-
-### Página em branco
-
-- ✅ Abra o Console do navegador (F12)
-- ✅ Verifique se há erros
-- ✅ Confirme se o `.env.local` existe no frontend
-
----
-
-## 🤝 Contribuindo
-
-Contribuições são bem-vindas! Sinta-se à vontade para:
-
-1. Fazer um Fork do projeto
-2. Criar uma Branch (`git checkout -b feature/NovaFuncionalidade`)
-3. Commit suas mudanças (`git commit -m 'Adiciona nova funcionalidade'`)
-4. Push para a Branch (`git push origin feature/NovaFuncionalidade`)
-5. Abrir um Pull Request
-
----
-
 ## 📝 Melhorias Futuras
 
 - [ ] Sistema de autenticação (login/senha)
@@ -299,37 +243,11 @@ Contribuições são bem-vindas! Sinta-se à vontade para:
 - [ ] Histórico de agendamentos por cliente
 - [ ] Dashboard com gráficos
 - [ ] Exportação de dados (PDF/Excel)
+- [ ] Backup automático do SQLite
 - [ ] Multi-idiomas
 - [ ] Tema escuro
 - [ ] PWA (Progressive Web App)
+- [ ] Sincronização na nuvem (opcional)
 
----
 
-## 📄 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
----
-
-## 👨‍💻 Autor
-
-Desenvolvido com ❤️ para profissionais autônomos
-
----
-
-## 📞 Suporte
-
-Encontrou algum problema? Tem alguma sugestão?
-
-- 🐛 Abra uma [Issue](https://github.com/seu-usuario/agenda-pro/issues)
-- 💬 Entre em contato
-
----
-
-## ⭐ Gostou do projeto?
-
-Se este sistema foi útil para você, considere dar uma ⭐ no repositório!
-
----
-
-**Última atualização:** Dezembro 2024
+**Última atualização:** Dezembro 2025
